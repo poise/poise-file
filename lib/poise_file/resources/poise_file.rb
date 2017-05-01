@@ -82,7 +82,7 @@ module PoiseFile
             content = case @new_resource.format.to_s
               when 'json'
                 require 'chef/json_compat'
-                Chef::JSONCompat.to_json_pretty(@new_resource.content)
+                Chef::JSONCompat.to_json_pretty(@new_resource.content) + "\n"
               when 'yaml'
                 require 'yaml'
                 YAML.dump(@new_resource.content)

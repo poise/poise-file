@@ -45,7 +45,7 @@ describe PoiseFile::Resources::PoiseFile do
       end
     end
 
-    its(['test.json']) { is_expected.to eq %Q({\n  "foo": "bar"\n}) }
+    its(['test.json']) { is_expected.to eq %Q({\n  "foo": "bar"\n}\n) }
   end # /context with a .json path
 
   context 'with a .yaml path' do
