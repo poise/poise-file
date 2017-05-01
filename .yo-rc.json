@@ -1,6 +1,7 @@
 {
   "generator-poise": {
     "name": "poise-file",
-    "cookbookName": "auto"
+    "cookbookName": "auto",
+    "created": true
   }
 }

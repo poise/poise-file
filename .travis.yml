@@ -2,7 +2,8 @@ sudo: false
 cache: bundler
 language: ruby
 env:
-  global: []
+  global:
+    - secure: bj789VwIKz0ZdQpwEMvxTWwESmIJ3l7k1GQSi46C9QFM9DDHl480e7plEHGJnzwRbU9AQ8YGNuecfVWGdQeOckC3HKs2hyPbeAErVUBk/XkXJptt/q74HpBBKM1iWJ1ABHeHjzz49w5oq1Or7kdBZb+o6/hQxHoppsIR7Qy4b4ae7fgFzOSaj3oJj/FVAgBSfh5nwMwczE3m89efY4kNznmfARCRZDBik4LqR0AZDnnuNPS41eRHFTRc+KRAXcTnEypT2o56yzmJrilBh/1wgG7HDC7PQRP2Y0F/e48OGXyHJ55FCYN3lbnmDpktoV08DtG5Ai0cFu5zv+SHhOd14sDGDmBZUePZt0teX6k4ieur5z7zFU+f0nHzIWr2d+Fe5eQ5oaM19nO/OgnVhy+MD1m4f2Ri4nQIHWTwspB9IcmIW5h7DeRnhb50+xndK7FfKXit/sxxluZGC9Mhitgch5Sjpddm+r6MV63UgymqIO5mi3fWsfI5TVlNPf+toi8VScL2sRXVBFodBsAGIu3pX30l8n+l5XwaArELle++NIqeycc74ftqvIuH1BVXyQOyFqDipGpBEZsf0XNXEO9zJ2z2GaWuZYvDHknZ/JF+lCft4ucBRt75hKRbCXFD5JuM4GmeSQ6KjCrwzVF6qTuPukfpHXlZ2dISrFqqQIon0Ls="
 before_install:
   - 'if [[ $BUNDLE_GEMFILE == *master.gemfile ]]; then gem update --system; fi'
   - gem --version
