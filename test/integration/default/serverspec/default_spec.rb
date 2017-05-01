@@ -14,14 +14,36 @@
 # limitations under the License.
 #
 
-poise_file '/poise_test' do
-  content "I'm a little teapot\n"
+require 'serverspec'
+set :backend, :exec
+
+describe file('/poise_test') do
+  it { is_expected.to be_a_file }
+  its(:content) { is_expected.to eq "I'm a little teapot\n" }
 end
 
-poise_file '/poise_test.json' do
-  content ['short and stout', {here: 'is my handle'}]
+describe file('/poise_test.json') do
+  it { is_expected.to be_a_file }
+  its(:content) { is_expected.to eq <<-EOH }
+[
+  "short and stout",
+  {
+    "here": "is my handle"
+  }
+]
+EOH
 end
 
-poise_file '/poise_test.yml' do
-  content 'here' => 'is my spout', 'when' => ['I', 'get', 'all', 'steamed', 'up']
+describe file('/poise_test.yml') do
+  it { is_expected.to be_a_file }
+  its(:content) { is_expected.to eq <<-EOH }
+---
+here: is my spout
+when:
+- I
+- get
+- all
+- steamed
+- up
+EOH
 end
