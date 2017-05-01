@@ -31,12 +31,50 @@ describe PoiseFile::Resources::PoiseFile do
     example.metadata[:poise_file_temp_path]
   end
 
-
-  recipe do
-    poise_file "#{node['temp_path']}/test.json" do
-      content foo: 'bar'
-    end
+  subject do
+    # Actually write out the file.
+    run_chef
+    # Lazy load any requested file.
+    Hash.new {|has, key| IO.read("#{temp_path}/#{key}") }
   end
 
-  it { run_chef; expect(IO.read("#{temp_path}/test.json")).to eq %Q({\n  "foo": "bar"\n}) }
+  context 'with a .json path' do
+    recipe(subject: false) do
+      poise_file "#{node['temp_path']}/test.json" do
+        content foo: 'bar'
+      end
+    end
+
+    its(['test.json']) { is_expected.to eq %Q({\n  "foo": "bar"\n}) }
+  end # /context with a .json path
+
+  context 'with a .yaml path' do
+    recipe(subject: false) do
+      poise_file "#{node['temp_path']}/test.yaml" do
+        content 'foo' => 'bar'
+      end
+    end
+
+    its(['test.yaml']) { is_expected.to eq %Q(---\nfoo: bar\n) }
+  end # /context with a .yaml path
+
+  context 'with a .yml path' do
+    recipe(subject: false) do
+      poise_file "#{node['temp_path']}/test.yml" do
+        content 'foo' => 'bar'
+      end
+    end
+
+    its(['test.yml']) { is_expected.to eq %Q(---\nfoo: bar\n) }
+  end # /context with a .yml path
+
+  context 'with a .txt path' do
+    recipe(subject: false) do
+      poise_file "#{node['temp_path']}/test.txt" do
+        content 'foo' => 'bar'
+      end
+    end
+
+    its(['test.txt']) { is_expected.to eq %Q({"foo"=>"bar"}) }
+  end # /context with a .txt path
 end
