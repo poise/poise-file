@@ -199,6 +199,8 @@ module PoiseFile
         # @api private
         # @return [String]
         def content_for_format
+          # If we get a string, it's always the raw content.
+          return @new_resource.content if @new_resource.content.is_a?(String)
           case @new_resource.format.to_s
           when 'json'
             require 'chef/json_compat'
