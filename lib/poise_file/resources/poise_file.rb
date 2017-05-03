@@ -59,6 +59,8 @@ module PoiseFile
 
         # @!attribute pattern
         #   Regular expression pattern to use for an in-place update of the file.
+        #   If given a Proc it should take two arguments, the current content of
+        #   the file and the resource object.
         #   @see #pattern_location
         #   @return [String, Regexp, Proc, nil, false]
         attribute(:pattern, kind_of: [String, Regexp, Proc, NilClass, FalseClass], default: nil)
