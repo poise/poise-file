@@ -19,10 +19,12 @@ require 'spec_helper'
 
 describe PoiseFile::Resources::PoiseFile do
   step_into(:poise_file)
+  let(:existing_content) { nil }
   around do |ex|
     Dir.mktmpdir('poise_file') do |path|
       ex.metadata[:poise_file_temp_path] = path
       default_attributes['temp_path'] = path
+      IO.write("#{temp_path}/test.txt", existing_content) if existing_content
       ex.run
     end
   end
@@ -38,43 +40,97 @@ describe PoiseFile::Resources::PoiseFile do
     Hash.new {|has, key| IO.read("#{temp_path}/#{key}") }
   end
 
-  context 'with a .json path' do
-    recipe(subject: false) do
-      poise_file "#{node['temp_path']}/test.json" do
-        content foo: 'bar'
+  describe 'formats' do
+    context 'with a .json path' do
+      recipe(subject: false) do
+        poise_file "#{node['temp_path']}/test.json" do
+          content foo: 'bar'
+        end
       end
-    end
 
-    its(['test.json']) { is_expected.to eq %Q({\n  "foo": "bar"\n}\n) }
-  end # /context with a .json path
+      its(['test.json']) { is_expected.to eq %Q({\n  "foo": "bar"\n}\n) }
+    end # /context with a .json path
 
-  context 'with a .yaml path' do
-    recipe(subject: false) do
-      poise_file "#{node['temp_path']}/test.yaml" do
-        content 'foo' => 'bar'
+    context 'with a .yaml path' do
+      recipe(subject: false) do
+        poise_file "#{node['temp_path']}/test.yaml" do
+          content 'foo' => 'bar'
+        end
       end
-    end
 
-    its(['test.yaml']) { is_expected.to eq %Q(---\nfoo: bar\n) }
-  end # /context with a .yaml path
+      its(['test.yaml']) { is_expected.to eq %Q(---\nfoo: bar\n) }
+    end # /context with a .yaml path
 
-  context 'with a .yml path' do
-    recipe(subject: false) do
-      poise_file "#{node['temp_path']}/test.yml" do
-        content 'foo' => 'bar'
+    context 'with a .yml path' do
+      recipe(subject: false) do
+        poise_file "#{node['temp_path']}/test.yml" do
+          content 'foo' => 'bar'
+        end
       end
-    end
 
-    its(['test.yml']) { is_expected.to eq %Q(---\nfoo: bar\n) }
-  end # /context with a .yml path
+      its(['test.yml']) { is_expected.to eq %Q(---\nfoo: bar\n) }
+    end # /context with a .yml path
 
-  context 'with a .txt path' do
-    recipe(subject: false) do
-      poise_file "#{node['temp_path']}/test.txt" do
-        content 'foo' => 'bar'
+    context 'with a .txt path' do
+      recipe(subject: false) do
+        poise_file "#{node['temp_path']}/test.txt" do
+          content 'foo' => 'bar'
+        end
       end
-    end
 
-    its(['test.txt']) { is_expected.to eq %Q({"foo"=>"bar"}) }
-  end # /context with a .txt path
+      its(['test.txt']) { is_expected.to eq %Q({"foo"=>"bar"}) }
+    end # /context with a .txt path
+  end # /describe formats
+
+  describe 'patterns' do
+    context 'with a simple replace pattern' do
+      let(:existing_content) { "this is\na test\n" }
+      recipe(subject: false) do
+        poise_file "#{node['temp_path']}/test.txt" do
+          content "this is not"
+          pattern '^this is$'
+        end
+      end
+
+      its(['test.txt']) { is_expected.to eq "this is not\na test\n" }
+    end # /context with a simple replace pattern
+
+    context 'with a simple before pattern' do
+      let(:existing_content) { "this is\na test\n" }
+      recipe(subject: false) do
+        poise_file "#{node['temp_path']}/test.txt" do
+          content "probably\n"
+          pattern '^a test$'
+          pattern_location :before
+        end
+      end
+
+      its(['test.txt']) { is_expected.to eq "this is\nprobably\na test\n" }
+    end # /context with a simple before pattern
+
+    xcontext 'with a simple after pattern' do
+      let(:existing_content) { "this is\na test\n" }
+      recipe(subject: false) do
+        poise_file "#{node['temp_path']}/test.txt" do
+          content "probably\n"
+          pattern '^a test$'
+          pattern_location :after
+        end
+      end
+
+      its(['test.txt']) { is_expected.to eq "this is\na test\nprobably\n" }
+    end # /context with a simple after pattern
+
+    context 'with a proc pattern' do
+      let(:existing_content) { "this is\na test\n" }
+      recipe(subject: false) do
+        poise_file "#{node['temp_path']}/test.txt" do
+          content "this is not"
+          pattern proc {|existing_content| existing_content.gsub(/t/, 'q') }
+        end
+      end
+
+      its(['test.txt']) { is_expected.to eq "qhis is\na qesq\n" }
+    end # /context with a proc pattern
+  end # /describe patterns
 end

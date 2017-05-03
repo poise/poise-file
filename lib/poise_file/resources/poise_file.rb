@@ -57,6 +57,25 @@ module PoiseFile
         #   @return [String, Symbol]
         attribute(:format, kind_of: [String, Symbol], default: lazy { default_format })
 
+        # @!attribute pattern
+        #   Regular expression pattern to use for an in-place update of the file.
+        #   @see #pattern_location
+        #   @return [String, Regexp, Proc, nil, false]
+        attribute(:pattern, kind_of: [String, Regexp, Proc, NilClass, FalseClass], default: nil)
+
+        # @!attribute pattern_location
+        #   Location to insert the {#content} data at. Must be one of:
+        #   * replace: Overwrite the pattern.
+        #   * replace_or_add: Overwrite the patter or append to the file if the
+        #      pattern is not present.
+        #   * before: Insert the {#content} immediately before the pattern if it
+        #     doesn't already exist.
+        #   * after: Insert the {#content} immediately after the pattern if it
+        #     doesn't already exist.
+        #   @see #pattern
+        #   @return [String, Symbol]
+        attribute(:pattern_location, kind_of: [String, Symbol], default: 'replace')
+
         private
 
         # Find the default format based on the file path.
@@ -64,6 +83,7 @@ module PoiseFile
         # @api private
         # @return [String]
         def default_format
+          return 'text' if pattern
           case path
           when /\.json$/
             'json'
@@ -75,27 +95,120 @@ module PoiseFile
         end
       end
 
+      # File content class for `poise_file`.
+      #
+      # @api private
+      # @see Resource
       class Content < Chef::FileContentManagement::ContentBase
+        # Required abstract method for ContentBase. Builds the new content of
+        # file in a tempfile or returns nil to not touch the file content.
+        #
+        # @return [Chef::FileContentManagement::Tempfile, nil]
         def file_for_provider
           if @new_resource.content
+            if @new_resource.pattern && @new_resource.format.to_s != 'text'
+              raise ArgumentError.new("Cannot use `pattern` property and `format` property together")
+            end
+
             tempfile = Chef::FileContentManagement::Tempfile.new(@new_resource).tempfile
-            content = case @new_resource.format.to_s
-              when 'json'
-                require 'chef/json_compat'
-                Chef::JSONCompat.to_json_pretty(@new_resource.content) + "\n"
-              when 'yaml'
-                require 'yaml'
-                YAML.dump(@new_resource.content)
-              when 'text'
-                @new_resource.content
-              else
-                raise ArgumentError.new("Unknown file format #{@new_resource.format.inspect}")
-              end
+            content = if @new_resource.pattern
+              content_for_pattern
+            else
+              content_for_format
+            end
             tempfile.write(content)
             tempfile.close
             tempfile
           else
             nil
+          end
+        end
+
+        private
+
+        # Build the content when using the edit-in-place mode.
+        #
+        # @api private
+        # @return [String]
+        def content_for_pattern
+          # Get the base content to start from.
+          existing_content = if ::File.exist?(@new_resource.path)
+            IO.read(@new_resource.path)
+          else
+            # Pretend the file is empty if it doesn't already exist.
+            ''
+          end
+
+          # If we were given a proc, use it.
+          if @new_resource.pattern.is_a?(Proc)
+            return @new_resource.pattern.call(existing_content, @new_resource)
+          end
+
+          # Build the pattern.
+          pattern = if @new_resource.pattern.is_a?(Regexp)
+            # Should this dup the pattern because weird tracking stuff?
+            @new_resource.pattern
+          else
+            # Ruby will show a warning if trying to add options to an existing
+            # Regexp instance so only use that if it's a string.
+            Regexp.new(@new_resource.pattern, Regexp::MULTILINE)
+          end
+
+          # Run the pattern operation.
+          case @new_resource.pattern_location.to_s
+          when 'replace'
+            # Overwrite the matched section.
+            existing_content.gsub!(pattern, @new_resource.content) || existing_content
+          when 'replace_or_add'
+            # Overwrite the pattern if it matches otherwise append.
+            existing_content.gsub!(pattern, @new_resource.content) || (existing_content << @new_resource.content)
+          when 'before'
+            # Insert the content before the pattern if it doesn't already exist.
+            match = pattern.match(existing_content)
+            if match
+              if match.pre_match.end_with?(@new_resource.content)
+                existing_content
+              else
+                '' << match.pre_match << @new_resource.content << match[0] << match.post_match
+              end
+            else
+              existing_content
+            end
+          when 'after'
+            # Insert the content after the pattern if it doesn't already exist.
+            match = pattern.match(existing_content)
+            if match
+              if match.post_match.start_with?(@new_resource.content)
+                existing_content
+              else
+                '' << match.pre_match << match[0] << @new_resource.content << match.post_match
+              end
+            else
+              existing_content
+            end
+          else
+            raise ArgumentError.new("Unknown file pattern location #{@new_resource.pattern_location.inspect}")
+          end
+        end
+
+        # Build the content when using format mode (i.e. when not using the
+        # edit-in-place mode).
+        #
+        # @api private
+        # @return [String]
+        def content_for_format
+          case @new_resource.format.to_s
+          when 'json'
+            require 'chef/json_compat'
+            # Make sure we include the trailing newline because YAML has one.
+            Chef::JSONCompat.to_json_pretty(@new_resource.content) + "\n"
+          when 'yaml'
+            require 'yaml'
+            YAML.dump(@new_resource.content)
+          when 'text'
+            @new_resource.content
+          else
+            raise ArgumentError.new("Unknown file format #{@new_resource.format.inspect}")
           end
         end
       end
