@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
   spec.version = PoiseFile::VERSION
   spec.authors = ['Noah Kantrowitz']
   spec.email = %w{noah@coderanger.net}
-  spec.description = 'A Chef cookbook for advanced file managent.'
+  spec.description = 'A Chef cookbook for advanced file management.'
   spec.summary = spec.description
   spec.homepage = 'https://github.com/poise/poise-file'
   spec.license = 'Apache-2.0'
