@@ -76,7 +76,7 @@ module PoiseFile
         #     doesn't already exist.
         #   @see #pattern
         #   @return [String, Symbol]
-        attribute(:pattern_location, kind_of: [String, Symbol], default: 'replace')
+        attribute(:pattern_location, kind_of: [String, Symbol], default: 'replace_or_add')
 
         private
 
