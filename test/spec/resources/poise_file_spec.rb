@@ -90,6 +90,16 @@ describe PoiseFile::Resources::PoiseFile do
 
       its(['test.txt']) { is_expected.to eq %Q({"foo"=>"bar"}) }
     end # /context with a .txt path
+
+    context 'with node attributes' do
+      recipe(subject: false) do
+        poise_file "#{node['temp_path']}/test.txt" do
+          content node['network']
+        end
+      end
+
+      its(['test.txt']) { is_expected.to match /\A\{.*\}\Z/ }
+    end # /context with node attributes
   end # /describe formats
 
   describe 'patterns' do
