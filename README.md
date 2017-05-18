@@ -11,35 +11,73 @@ A [Chef](https://www.chef.io/) cookbook to do something.
 
 ## Quick Start
 
-TODO.
+To write out a JSON file from node attributes:
 
-## Recipes
+```ruby
+poise_file '/etc/myapp.json' do
+  content node['myapp']
+end
+```
 
-* `poise-file::default` – Do something.
+To update a file in place:
 
-## Attributes
-
-* `node['poise-file']['something']` – Something.
+```ruby
+poise_file '/etc/hosts' do
+  content 'otherhostname'
+  pattern 'myhostname'
+  pattern_location :replace
+end
+```
 
 ## Resources
 
 ### `poise_file`
 
-The `poise_file` resource installs and configures Monit.
+The `poise_file` resource extends the core `file` resource to support formats
+and patterns.
+
+#### Formats
+
+If the file path ends with `.json` or `.yaml`/`.yml` and the `content` property
+is a Hash or Array object, it will be automatically converted. You can also
+explicitly set the `format` property to `:json` or `:yaml` to force formatting.
+
+#### Patterns
+
+Using replacement patterns allows editing files in-place in a structured manner.
+This is similar to the `FileEdit` API or `line` cookbook/resource. The `pattern`
+property takes a RegExp object or string pattern to match against. The value of
+`pattern_location` controls how the `content` gets used relative to the `pattern`.
+
+* `:replace` – `content` replaces the matching section. If the pattern does not match, the content is not changed.
+* `:replace_or_add` – `content` replaces the matching section. If the pattern does not match, the content is appended to the end of the file.
+* `:before` – `content` is inserted immediately before the matching section. If the pattern does not match, the content is not changed.
+* `:after` – `content` is inserted immediately after the matching section. If the pattern does not match, the content is not changed.
+
+You can also pass a Proc to perform arbitrary manipulations:
 
 ```ruby
-poise_file 'poise_file' do
-  something value
+poise_file '/etc/myapp.conf' do
+  pattern proc {|existing_content| existing_content.tr('a-z', 'n-za-m') }
 end
 ```
 
+If you have an in-place editing scenario not handled by these operations, please
+let me know by [filing an issue](https://github.com/poise/poise-file/issues/new).
+
 #### Actions
 
-* `:something` – Something. *(default)*
+All actions are the same as the core `file` resource.
 
 #### Properties
 
-* `something` – Something. *(name attribute)*
+* `format` – File serialization format. One of `:text`, `:json`, or `:yaml`.
+  *(default: auto-detect)*
+* `pattern` – Regular expression pattern or object to search for.
+* `pattern_location` – Mode to use for the `pattern` replacement. One of
+  `:replace`, `:replace_or_add`, `:before`, `:after`. *(default: `:replace_or_add`)*
+
+All other properties as the same as the core `file` resource.
 
 ## Sponsors
 
