@@ -100,6 +100,17 @@ describe PoiseFile::Resources::PoiseFile do
 
       its(['test.txt']) { is_expected.to match /\A\{.*\}\Z/ }
     end # /context with node attributes
+
+    context 'with an invalid format' do
+      recipe do
+        poise_file "#{node['temp_path']}/test.txt" do
+          content "this is a test\n"
+          format :other
+        end
+      end
+
+      it { expect { run_chef }.to raise_error ArgumentError }
+    end # /context with an invalid format
   end # /describe formats
 
   describe 'patterns' do
@@ -170,6 +181,18 @@ describe PoiseFile::Resources::PoiseFile do
 
         its(['test.txt']) { is_expected.to eq "this is\na test\nthis is not\n" }
       end # /context with a patten that does not match
+
+      context 'with a file that does not exist' do
+        recipe(subject: false) do
+          poise_file "#{node['temp_path']}/test.txt" do
+            content "this is not\n"
+            pattern '^this was$'
+            pattern_location :replace_or_add
+          end
+        end
+
+        its(['test.txt']) { is_expected.to eq "this is not\n" }
+      end # /context with a file that does not exist
     end # /describe replace_or_add
 
     describe 'before' do
@@ -277,5 +300,29 @@ describe PoiseFile::Resources::PoiseFile do
 
       its(['test.txt']) { is_expected.to eq "this is not\n\na test\n" }
     end # /context with a RegExp pattern
+
+    context 'with an invalid pattern_location' do
+      recipe do
+        poise_file "#{node['temp_path']}/test.txt" do
+          content "this is a test\n"
+          pattern 'asdf'
+          pattern_location :other
+        end
+      end
+
+      it { expect { run_chef }.to raise_error ArgumentError }
+    end # /context with an invalid pattern_location
   end # /describe patterns
+
+  context 'with both a format and a pattern' do
+    recipe do
+      poise_file "#{node['temp_path']}/test.txt" do
+        content "this is a test\n"
+        format :json
+        pattern 'asdf'
+      end
+    end
+
+    it { expect { run_chef }.to raise_error ArgumentError }
+  end # /context with both a format and a pattern
 end
