@@ -151,9 +151,16 @@ module PoiseFile
             # Should this dup the pattern because weird tracking stuff?
             @new_resource.pattern
           else
+            # Deal with newlines at the end of a line because $ matches before
+            # newline, not after.
+            pattern_string = if @new_resource.content.end_with?("\n")
+              @new_resource.pattern.gsub(/\$\Z/, "$\n?")
+            else
+              @new_resource.pattern
+            end
             # Ruby will show a warning if trying to add options to an existing
             # Regexp instance so only use that if it's a string.
-            Regexp.new(@new_resource.pattern, Regexp::MULTILINE)
+            Regexp.new(pattern_string, Regexp::MULTILINE)
           end
 
           # Run the pattern operation.

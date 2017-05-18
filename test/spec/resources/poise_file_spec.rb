@@ -93,43 +93,104 @@ describe PoiseFile::Resources::PoiseFile do
   end # /describe formats
 
   describe 'patterns' do
-    context 'with a simple replace pattern' do
-      let(:existing_content) { "this is\na test\n" }
-      recipe(subject: false) do
-        poise_file "#{node['temp_path']}/test.txt" do
-          content "this is not"
-          pattern '^this is$'
+    describe 'replace' do
+      context 'with a simple pattern' do
+        let(:existing_content) { "this is\na test\n" }
+        recipe(subject: false) do
+          poise_file "#{node['temp_path']}/test.txt" do
+            content "this is not\n"
+            pattern '^this is$'
+            pattern_location :replace
+          end
         end
-      end
 
-      its(['test.txt']) { is_expected.to eq "this is not\na test\n" }
-    end # /context with a simple replace pattern
+        its(['test.txt']) { is_expected.to eq "this is not\na test\n" }
+      end # /context with a simple pattern
 
-    context 'with a simple before pattern' do
-      let(:existing_content) { "this is\na test\n" }
-      recipe(subject: false) do
-        poise_file "#{node['temp_path']}/test.txt" do
-          content "probably\n"
-          pattern '^a test$'
-          pattern_location :before
+      context 'with a replacement without a newline' do
+        let(:existing_content) { "this is\na test\n" }
+        recipe(subject: false) do
+          poise_file "#{node['temp_path']}/test.txt" do
+            content "this is not"
+            pattern '^this is$'
+            pattern_location :replace
+          end
         end
-      end
 
-      its(['test.txt']) { is_expected.to eq "this is\nprobably\na test\n" }
-    end # /context with a simple before pattern
+        its(['test.txt']) { is_expected.to eq "this is not\na test\n" }
+      end # /context with a replacement without a newline
 
-    xcontext 'with a simple after pattern' do
-      let(:existing_content) { "this is\na test\n" }
-      recipe(subject: false) do
-        poise_file "#{node['temp_path']}/test.txt" do
-          content "probably\n"
-          pattern '^a test$'
-          pattern_location :after
+      context 'with a pattern that does not match' do
+        let(:existing_content) { "this is\na test\n" }
+        recipe(subject: false) do
+          poise_file "#{node['temp_path']}/test.txt" do
+            content "this is not"
+            pattern '^this was$'
+            pattern_location :replace
+          end
         end
-      end
 
-      its(['test.txt']) { is_expected.to eq "this is\na test\nprobably\n" }
-    end # /context with a simple after pattern
+        its(['test.txt']) { is_expected.to eq "this is\na test\n" }
+      end # /context with a pattern that does not match
+    end # /describe replace
+
+    describe 'replace_or_add' do
+      context 'with a simple pattern' do
+        let(:existing_content) { "this is\na test\n" }
+        recipe(subject: false) do
+          poise_file "#{node['temp_path']}/test.txt" do
+            content "this is not\n"
+            pattern '^this is$'
+            pattern_location :replace_or_add
+          end
+        end
+
+        its(['test.txt']) { is_expected.to eq "this is not\na test\n" }
+      end # /context with a simple pattern
+
+      context 'with a patten that does not match' do
+        let(:existing_content) { "this is\na test\n" }
+        recipe(subject: false) do
+          poise_file "#{node['temp_path']}/test.txt" do
+            content "this is not\n"
+            pattern '^this was$'
+            pattern_location :replace_or_add
+          end
+        end
+
+        its(['test.txt']) { is_expected.to eq "this is\na test\nthis is not\n" }
+      end # /context with a patten that does not match
+    end # /describe replace_or_add
+
+    describe 'before' do
+      context 'with a simple pattern' do
+        let(:existing_content) { "this is\na test\n" }
+        recipe(subject: false) do
+          poise_file "#{node['temp_path']}/test.txt" do
+            content "probably\n"
+            pattern '^a test$'
+            pattern_location :before
+          end
+        end
+
+        its(['test.txt']) { is_expected.to eq "this is\nprobably\na test\n" }
+      end # /context with a simple pattern
+    end # /describe before
+
+    describe 'after' do
+      context 'with a simple pattern' do
+        let(:existing_content) { "this is\na test\n" }
+        recipe(subject: false) do
+          poise_file "#{node['temp_path']}/test.txt" do
+            content "probably\n"
+            pattern '^a test$'
+            pattern_location :after
+          end
+        end
+
+        its(['test.txt']) { is_expected.to eq "this is\na test\nprobably\n" }
+      end # /context with a simple pattern
+    end # /describe after
 
     context 'with a proc pattern' do
       let(:existing_content) { "this is\na test\n" }
@@ -142,5 +203,17 @@ describe PoiseFile::Resources::PoiseFile do
 
       its(['test.txt']) { is_expected.to eq "qhis is\na qesq\n" }
     end # /context with a proc pattern
+
+    context 'with a RegExp pattern' do
+      let(:existing_content) { "this is\na test\n" }
+      recipe(subject: false) do
+        poise_file "#{node['temp_path']}/test.txt" do
+          content "this is not\n"
+          pattern(/^this is$/)
+        end
+      end
+
+      its(['test.txt']) { is_expected.to eq "this is not\n\na test\n" }
+    end # /context with a RegExp pattern
   end # /describe patterns
 end
