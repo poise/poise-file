@@ -47,3 +47,8 @@ when:
 - up
 EOH
 end
+
+describe file('/poise_test_pattern') do
+  it { is_expected.to be_a_file }
+  its(:content) { is_expected.to eq "I must yell\ntip me over\n" }
+end
