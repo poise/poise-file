@@ -175,6 +175,32 @@ describe PoiseFile::Resources::PoiseFile do
 
         its(['test.txt']) { is_expected.to eq "this is\nprobably\na test\n" }
       end # /context with a simple pattern
+
+      context 'with a pattern that already matches' do
+        let(:existing_content) { "this is\nprobably\na test\n" }
+        recipe(subject: false) do
+          poise_file "#{node['temp_path']}/test.txt" do
+            content "probably\n"
+            pattern '^a test$'
+            pattern_location :before
+          end
+        end
+
+        its(['test.txt']) { is_expected.to eq "this is\nprobably\na test\n" }
+      end # /context with a pattern that already matches
+
+      context 'with a pattern that does not match' do
+        let(:existing_content) { "this is\na test\n" }
+        recipe(subject: false) do
+          poise_file "#{node['temp_path']}/test.txt" do
+            content "probably\n"
+            pattern '^not a test$'
+            pattern_location :before
+          end
+        end
+
+        its(['test.txt']) { is_expected.to eq "this is\na test\n" }
+      end # /context with a pattern that does not match
     end # /describe before
 
     describe 'after' do
@@ -190,6 +216,32 @@ describe PoiseFile::Resources::PoiseFile do
 
         its(['test.txt']) { is_expected.to eq "this is\na test\nprobably\n" }
       end # /context with a simple pattern
+
+      context 'with a pattern that already matches' do
+        let(:existing_content) { "this is\na test\nprobably\n" }
+        recipe(subject: false) do
+          poise_file "#{node['temp_path']}/test.txt" do
+            content "probably\n"
+            pattern '^a test$'
+            pattern_location :after
+          end
+        end
+
+        its(['test.txt']) { is_expected.to eq "this is\na test\nprobably\n" }
+      end # /context with a pattern that already matches
+
+      context 'with a pattern that does not match' do
+        let(:existing_content) { "this is\na test\n" }
+        recipe(subject: false) do
+          poise_file "#{node['temp_path']}/test.txt" do
+            content "probably\n"
+            pattern '^not a test$'
+            pattern_location :after
+          end
+        end
+
+        its(['test.txt']) { is_expected.to eq "this is\na test\n" }
+      end # /context with a pattern that does not match
     end # /describe after
 
     context 'with a proc pattern' do
