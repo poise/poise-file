@@ -85,7 +85,7 @@ module PoiseFile
         # @api private
         # @return [String]
         def default_format
-          return 'text' if pattern
+          return 'text' if pattern || content.is_a?(String)
           case path
           when /\.json$/
             'json'
