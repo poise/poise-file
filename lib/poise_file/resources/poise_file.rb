@@ -89,6 +89,8 @@ module PoiseFile
           # have string content, it's just raw content by default.
           return 'text' if pattern || content.is_a?(String)
           case path
+          when /\.properties$/
+            'java'
           when /\.json$/
             'json'
           when /\.ya?ml$/
@@ -209,6 +211,9 @@ module PoiseFile
         # @return [String]
         def content_for_format
           case @new_resource.format.to_s
+          when 'java'
+            require 'java-properties'
+            JavaProperties.generate(@new_resource.content)
           when 'json'
             require 'chef/json_compat'
             # Make sure we include the trailing newline because YAML has one.

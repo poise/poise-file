@@ -41,6 +41,16 @@ describe PoiseFile::Resources::PoiseFile do
   end
 
   describe 'formats' do
+    context 'with a .properties path' do
+      recipe(subject: false) do
+        poise_file "#{node['temp_path']}/test.properties" do
+          content 'io.poise.file' => 'java'
+        end
+      end
+
+      its(['test.properties']) { is_expected.to eq %Q(io.poise.file=java) }
+    end # /context with a .properties path
+
     context 'with a .json path' do
       recipe(subject: false) do
         poise_file "#{node['temp_path']}/test.json" do

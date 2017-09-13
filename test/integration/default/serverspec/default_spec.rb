@@ -22,6 +22,18 @@ describe file('/poise_test') do
   its(:content) { is_expected.to eq "I'm a little teapot\n" }
 end
 
+describe file('/poise_test.properties') do
+  it { is_expected.to be_a_file }
+  its(:content) { is_expected.to eq <<-EOH }
+[
+  "short and stout",
+  {
+    "here": "is my handle"
+  }
+]
+EOH
+end
+
 describe file('/poise_test.json') do
   it { is_expected.to be_a_file }
   its(:content) { is_expected.to eq <<-EOH }
