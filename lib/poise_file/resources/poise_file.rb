@@ -93,6 +93,8 @@ module PoiseFile
             'json'
           when /\.ya?ml$/
             'yaml'
+          when /\.toml$/
+            'toml'
           else
             'text'
           end
@@ -213,6 +215,9 @@ module PoiseFile
             require 'chef/json_compat'
             # Make sure we include the trailing newline because YAML has one.
             Chef::JSONCompat.to_json_pretty(@new_resource.content) + "\n"
+          when 'toml'
+            require 'toml'
+            TOML::Generator.new(@new_resource.content).body
           when 'yaml'
             require 'yaml'
             YAML.dump(@new_resource.content)
