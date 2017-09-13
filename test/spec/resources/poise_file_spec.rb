@@ -41,6 +41,16 @@ describe PoiseFile::Resources::PoiseFile do
   end
 
   describe 'formats' do
+    context 'with a .edn path' do
+      recipe(subject: false) do
+        poise_file "#{node['temp_path']}/test.edn" do
+          content 'foo' => { 'bar' => 'baz' }
+        end
+      end
+
+      its(['test.edn']) { is_expected.to eq %Q({"foo" {"bar" "baz"}}) }
+    end # /context with a .edn path
+
     context 'with a .json path' do
       recipe(subject: false) do
         poise_file "#{node['temp_path']}/test.json" do
