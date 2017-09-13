@@ -35,6 +35,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = %w{lib}
 
   spec.add_dependency 'chef', '>= 12.1', '< 14'
+  spec.add_dependency 'java-properties', '~> 0.2'
   spec.add_dependency 'halite', '~> 1.0'
   spec.add_dependency 'poise', '~> 2.0'
 
