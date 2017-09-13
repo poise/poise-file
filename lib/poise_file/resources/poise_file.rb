@@ -91,6 +91,8 @@ module PoiseFile
           case path
           when /\.json$/
             'json'
+          when /\.ini$/
+            'ini'
           when /\.ya?ml$/
             'yaml'
           else
@@ -213,6 +215,20 @@ module PoiseFile
             require 'chef/json_compat'
             # Make sure we include the trailing newline because YAML has one.
             Chef::JSONCompat.to_json_pretty(@new_resource.content) + "\n"
+          when 'ini'
+            require 'iniparse'
+            IniParse.gen do |doc|
+              serializer = lambda do |key, value|
+                if value.kind_of? Hash
+                  doc.section(key) do |s|
+                    value.each_pair(&serializer)
+                  end
+                else
+                  doc.option(key, value)
+                end
+              end
+              @new_resource.content.to_hash.each_pair(&serializer)
+            end.to_ini
           when 'yaml'
             require 'yaml'
             YAML.dump(@new_resource.content)
