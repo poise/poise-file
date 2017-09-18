@@ -89,6 +89,8 @@ module PoiseFile
           # have string content, it's just raw content by default.
           return 'text' if pattern || content.is_a?(String)
           case path
+          when /\.(ba)?sh$/
+            'sh'
           when /\.json$/
             'json'
           when /\.ya?ml$/
@@ -209,6 +211,24 @@ module PoiseFile
         # @return [String]
         def content_for_format
           case @new_resource.format.to_s
+          when 'sh'
+            prefix = []
+            serializer = lambda do |(key, value)|
+              if value.kind_of? Hash
+                prefix.push(key)
+                r = value.map(&serializer)
+                prefix.pop
+                r
+              else
+                identifier = [prefix, key].flatten.compact.map(&:upcase).join('_')
+                if value.kind_of? Array
+                  "export #{identifier}=(#{value.map(&:to_s).join(' ')})"
+                else
+                  "export #{identifier}=\"#{value}\""
+                end
+              end
+            end
+            @new_resource.content.to_hash.map(&serializer).join("\n")
           when 'json'
             require 'chef/json_compat'
             # Make sure we include the trailing newline because YAML has one.

@@ -41,6 +41,26 @@ describe PoiseFile::Resources::PoiseFile do
   end
 
   describe 'formats' do
+    context 'with a .sh path' do
+      recipe(subject: false) do
+        poise_file "#{node['temp_path']}/test.sh" do
+          content foo: 'bar', bar: { baz: 'qux', quux: %w[quuz corge grault] }
+        end
+      end
+
+      its(['test.sh']) { is_expected.to eq %Q(export FOO="bar"\nexport BAR_BAZ="qux"\nexport BAR_QUUX=(quuz corge grault)) }
+    end # /context with a .sh path
+
+    context 'with a .bash path' do
+      recipe(subject: false) do
+        poise_file "#{node['temp_path']}/test.bash" do
+          content foo: 'bar', bar: { baz: 'qux', quux: %w[quuz corge grault] }
+        end
+      end
+
+      its(['test.bash']) { is_expected.to eq %Q(export FOO="bar"\nexport BAR_BAZ="qux"\nexport BAR_QUUX=(quuz corge grault)) }
+    end # /context with a .bash path
+
     context 'with a .json path' do
       recipe(subject: false) do
         poise_file "#{node['temp_path']}/test.json" do
