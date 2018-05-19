@@ -26,6 +26,10 @@ poise_file '/poise_test.yml' do
   content 'here' => 'is my spout', 'when' => ['I', 'get', 'all', 'steamed', 'up']
 end
 
+poise_file '/poise_test.toml' do
+  content 'here' => 'is my spout', 'when' => ['I', 'get', 'all', 'steamed', 'up']
+end
+
 file '/poise_test_pattern' do
   content "I must shout\ntip me over\n"
 end

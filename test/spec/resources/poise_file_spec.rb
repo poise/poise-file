@@ -61,6 +61,16 @@ describe PoiseFile::Resources::PoiseFile do
       its(['test.json']) { is_expected.to eq "foo\nbar\n" }
     end # /context with a .json path but string content
 
+    context 'with a .toml path' do
+      recipe(subject: false) do
+        poise_file "#{node['temp_path']}/test.toml" do
+          content 'foo' => 'bar'
+        end
+      end
+
+      its(['test.toml']) { is_expected.to eq %Q(foo = "bar"\n) }
+    end # /context with a .toml path
+
     context 'with a .yaml path' do
       recipe(subject: false) do
         poise_file "#{node['temp_path']}/test.yaml" do
