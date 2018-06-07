@@ -38,9 +38,10 @@ and patterns.
 
 #### Formats
 
-If the file path ends with `.json` or `.yaml`/`.yml` and the `content` property
-is a Hash or Array object, it will be automatically converted. You can also
-explicitly set the `format` property to `:json` or `:yaml` to force formatting.
+If the file path ends with `.json`, `.yaml`/`.yml` or `.sh/.bash` and
+the `content` property is a Hash or Array object, it will be
+automatically converted. You can also explicitly set the `format`
+property to `:json` or `:yaml` to force formatting.
 
 #### Patterns
 
@@ -71,7 +72,7 @@ All actions are the same as the core `file` resource.
 
 #### Properties
 
-* `format` – File serialization format. One of `:text`, `:json`, or `:yaml`.
+* `format` – File serialization format. One of `:text`, `:sh`, `:json`, or `:yaml`.
   *(default: auto-detect)*
 * `pattern` – Regular expression pattern or object to search for.
 * `pattern_location` – Mode to use for the `pattern` replacement. One of
